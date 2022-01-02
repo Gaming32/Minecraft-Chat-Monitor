@@ -41,15 +41,19 @@ public final class LogToMultiplePlaces implements AutoCloseable {
                 .append("] ")
                 .append(strippedFormatting)
         );
-        ChatGui chatGui = session.getFlag(ChatMonitor.CHAT_GUI_KEY);
-        if (chatGui != null) {
-            JTextArea chatOutput = chatGui.getChatOutput();
-            // JScrollBar chatOutputScrollBar = chatGui.getChatOutputScrollPane().getVerticalScrollBar();
-            // boolean scrollDown = chatOutputScrollBar.getValue() + chatOutputScrollBar.getModel().getExtent() >= chatOutputScrollBar.getMaximum();
-            chatOutput.append(strippedFormatting + "\n");
-            chatOutput.setCaretPosition(chatOutput.getDocument().getLength());
-            // if (scrollDown) {
-            // }
+        try {
+            ChatGui chatGui = session.getFlag(ChatMonitor.CHAT_GUI_KEY);
+            if (chatGui != null) {
+                JTextArea chatOutput = chatGui.getChatOutput();
+                // JScrollBar chatOutputScrollBar = chatGui.getChatOutputScrollPane().getVerticalScrollBar();
+                // boolean scrollDown = chatOutputScrollBar.getValue() + chatOutputScrollBar.getModel().getExtent() >= chatOutputScrollBar.getMaximum();
+                chatOutput.append(strippedFormatting + "\n");
+                chatOutput.setCaretPosition(chatOutput.getDocument().getLength());
+                // if (scrollDown) {
+                // }
+            }
+        } catch (Exception e) {
+            // Maybe the GUI was closed
         }
     }
 

@@ -1,5 +1,7 @@
 package io.github.gaming32.twobeetwoare;
 
+import javax.swing.JOptionPane;
+
 import com.github.steveice10.mc.auth.service.SessionService;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundChatPacket;
@@ -11,6 +13,8 @@ import com.github.steveice10.packetlib.Session;
 import com.github.steveice10.packetlib.event.session.DisconnectedEvent;
 import com.github.steveice10.packetlib.event.session.SessionAdapter;
 import com.github.steveice10.packetlib.packet.Packet;
+
+import io.github.gaming32.twobeetwoare.gui.ChatGui;
 
 public final class GameListener extends SessionAdapter {
     private static String OAM_CHANNEL = "openauthmod:join";
@@ -73,6 +77,23 @@ public final class GameListener extends SessionAdapter {
         logger.println("!Disconnected for: " + event.getReason());
         if (event.getCause() != null) {
             event.getCause().printStackTrace();
+            if (ChatMonitor.hasGui()) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    "Unexpectedly disconnected from server! " + event.getReason() + "\n" + event.getCause().getClass().getName() + ": " + event.getCause(),
+                    ChatGui.TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        } else {
+            if (ChatMonitor.hasGui()) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    "Disconnected: " + event.getReason(),
+                    ChatGui.TITLE,
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+            }
         }
         System.exit(event.getCause() == null ? 0 : 1);
     }
