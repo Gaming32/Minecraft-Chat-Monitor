@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import javax.swing.JOptionPane;
+import javax.swing.UIManager;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.service.SessionService;
@@ -21,11 +22,25 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import io.github.gaming32.twobeetwoare.betacraft.BC;
+import io.github.gaming32.twobeetwoare.gui.ChatGui;
 
-public class ChatMonitor {
+public final class ChatMonitor {
     public static final String CHAT_LOGGER_KEY = "chat-logger";
+    public static final String CHAT_GUI_KEY = "chat-gui";
+
+    private static boolean hasGui;
 
     public static void main(String[] args) throws IOException {
+        hasGui = args.length == 0 || !args[0].toLowerCase().endsWith("nogui");
+        if (hasGui) {
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            UIManager.getLookAndFeelDefaults().put("Slider.paintValue", Boolean.FALSE); // GTK PLAF fix
+        }
+
         Pair<GameProfile, String> profileData = getMsaAccessTokenFromBetacraft();
         if (profileData == null) {
             System.exit(1);
@@ -42,12 +57,20 @@ public class ChatMonitor {
         client.setFlag(MinecraftConstants.SESSION_SERVICE_KEY, sessionService);
         client.setFlag(MinecraftConstants.PROFILE_KEY, profileData.getLeft());
         client.setFlag(MinecraftConstants.ACCESS_TOKEN_KEY, profileData.getRight());
-        client.setFlag(CHAT_LOGGER_KEY, new LogToMultiplePlaces());
+        client.setFlag(CHAT_LOGGER_KEY, new LogToMultiplePlaces(client));
+        client.setFlag(CHAT_GUI_KEY, null);
 
         client.addListener(new GameListener());
         client.connect(true);
 
         new KeepAliveTask(client).start();
+        if (hasGui) {
+            client.setFlag(CHAT_GUI_KEY, ChatGui.makeChatGui(client));
+        }
+    }
+
+    public static boolean hasGui() {
+        return hasGui;
     }
 
     private static Pair<GameProfile, String> getMsaAccessTokenFromBetacraft() {
@@ -56,8 +79,10 @@ public class ChatMonitor {
         try (Reader reader = new FileReader(accountsJsonPath.toFile())) {
             jsonRoot = new JSONObject(new JSONTokener(reader));
         } catch (Exception e) {
+            final String message = "Can't read BetaCraft accounts.json";
+            System.err.println(message);
             e.printStackTrace();
-            JOptionPane.showMessageDialog(null, e.toString(), "Can't read BetaCraft accounts.json", JOptionPane.ERROR_MESSAGE);
+            if (hasGui) JOptionPane.showMessageDialog(null, message + ": " + e, ChatGui.TITLE, JOptionPane.ERROR_MESSAGE);
             return null;
         }
         String currentAccount = jsonRoot.getString("current");
@@ -69,6 +94,11 @@ public class ChatMonitor {
                     account.getString("username")
                 ), account.getString("access_token"));
             }
+        }
+        {
+            final String message = "Unable to find valid Microsoft account in BetaCraft accounts.json";
+            System.err.println(message);
+            if (hasGui) JOptionPane.showMessageDialog(null, message, ChatGui.TITLE, JOptionPane.ERROR_MESSAGE);
         }
         return null;
     }

@@ -63,14 +63,14 @@ public final class GameListener extends SessionAdapter {
                 }
         }
         if (state != oldState) {
-            logger.println("Switched to the " + state + " state");
+            logger.println("!Switched to the " + state + " state");
         }
     }
 
     @Override
     public void disconnected(DisconnectedEvent event) {
         LogToMultiplePlaces logger = event.getSession().getFlag(ChatMonitor.CHAT_LOGGER_KEY);
-        logger.println("Disconnected for: " + event.getReason());
+        logger.println("!Disconnected for: " + event.getReason());
         if (event.getCause() != null) {
             event.getCause().printStackTrace();
         }
