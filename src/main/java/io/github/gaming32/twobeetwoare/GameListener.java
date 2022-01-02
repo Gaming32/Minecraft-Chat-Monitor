@@ -79,6 +79,6 @@ public final class GameListener extends SessionAdapter {
         if (event.getCause() != null) {
             event.getCause().printStackTrace();
         }
-        System.exit(0);
+        System.exit(event.getCause() == null ? 0 : 1);
     }
 }
