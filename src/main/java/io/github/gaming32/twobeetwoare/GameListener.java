@@ -1,0 +1,84 @@
+package io.github.gaming32.twobeetwoare;
+
+import com.github.steveice10.mc.auth.service.SessionService;
+import com.github.steveice10.mc.protocol.MinecraftConstants;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundChatPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundCustomPayloadPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundKeepAlivePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCustomPayloadPacket;
+import com.github.steveice10.packetlib.Session;
+import com.github.steveice10.packetlib.event.session.DisconnectedEvent;
+import com.github.steveice10.packetlib.event.session.SessionAdapter;
+import com.github.steveice10.packetlib.packet.Packet;
+
+public final class GameListener extends SessionAdapter {
+    private static String OAM_CHANNEL = "openauthmod:join";
+
+    private static enum ClientState {
+        AWAITING_CONNECT,
+        AWAITING_AUTH_REQUEST,
+        IN_GAME_AFAIK
+    }
+
+    private ClientState state = ClientState.AWAITING_CONNECT;
+
+    @Override
+    public void packetReceived(Session session, Packet p) {
+        // System.out.println(p);
+        // if (p instanceof ClientboundChatPacket) {
+        //     ClientboundChatPacket packet = (ClientboundChatPacket)p;
+        //     System.out.println(packet.getMessage());
+        // }
+        ClientState oldState = state;
+        switch (state) {
+            case AWAITING_CONNECT:
+                if (p instanceof ClientboundKeepAlivePacket) {
+                    final String COMMAND = "/viaproxy 2b2r.org b1.7-b1.7.3";
+                    session.send(new ServerboundChatPacket(COMMAND));
+                    System.out.println(COMMAND);
+                    state = ClientState.AWAITING_AUTH_REQUEST;
+                }
+                break;
+            case AWAITING_AUTH_REQUEST:
+                if (p instanceof ClientboundCustomPayloadPacket) {
+                    ClientboundCustomPayloadPacket packet = (ClientboundCustomPayloadPacket)p;
+                    if (packet.getChannel().equals(OAM_CHANNEL)) {
+                        SessionService sessionService = session.getFlag(MinecraftConstants.SESSION_SERVICE_KEY);
+                        try {
+                            sessionService.joinServer(
+                                session.getFlag(MinecraftConstants.PROFILE_KEY),
+                                session.getFlag(MinecraftConstants.ACCESS_TOKEN_KEY),
+                                new String(packet.getData(), 1, packet.getData().length - 1)
+                            );
+                            session.send(new ServerboundCustomPayloadPacket(OAM_CHANNEL, new byte[] {1}));
+                            state = ClientState.IN_GAME_AFAIK;
+                        } catch (Exception e) {
+                            System.err.println("Failed to authenticate");
+                            e.printStackTrace();
+                            session.send(new ServerboundCustomPayloadPacket(OAM_CHANNEL, new byte[] {0}));
+                            session.disconnect("Failure to authenticate", e);
+                        }
+                    }
+                }
+                break;
+            case IN_GAME_AFAIK:
+                if (p instanceof ClientboundChatPacket) {
+                    ClientboundChatPacket packet = (ClientboundChatPacket)p;
+                    System.out.println(MessageFormatter.formatMessage(packet.getMessage()));
+                }
+        }
+        if (state != oldState) {
+            System.out.println("Switched to the " + state + " state");
+        }
+    }
+
+    @Override
+    public void disconnected(DisconnectedEvent event) {
+        System.out.println("Disconnected for: " + event.getReason());
+        if (event.getCause() != null) {
+            event.getCause().printStackTrace();
+        }
+        System.exit(0);
+    }
+}
