@@ -25,18 +25,14 @@ public final class GameListener extends SessionAdapter {
 
     @Override
     public void packetReceived(Session session, Packet p) {
-        // System.out.println(p);
-        // if (p instanceof ClientboundChatPacket) {
-        //     ClientboundChatPacket packet = (ClientboundChatPacket)p;
-        //     System.out.println(packet.getMessage());
-        // }
+        LogToMultiplePlaces logger = session.getFlag(ChatMonitor.CHAT_LOGGER_KEY);
         ClientState oldState = state;
         switch (state) {
             case AWAITING_CONNECT:
                 if (p instanceof ClientboundKeepAlivePacket) {
                     final String COMMAND = "/viaproxy 2b2r.org b1.7-b1.7.3";
                     session.send(new ServerboundChatPacket(COMMAND));
-                    System.out.println(COMMAND);
+                    logger.println(COMMAND);
                     state = ClientState.AWAITING_AUTH_REQUEST;
                 }
                 break;
@@ -54,10 +50,8 @@ public final class GameListener extends SessionAdapter {
                             session.send(new ServerboundCustomPayloadPacket(OAM_CHANNEL, new byte[] {1}));
                             state = ClientState.IN_GAME_AFAIK;
                         } catch (Exception e) {
-                            System.err.println("Failed to authenticate");
-                            e.printStackTrace();
                             session.send(new ServerboundCustomPayloadPacket(OAM_CHANNEL, new byte[] {0}));
-                            session.disconnect("Failure to authenticate", e);
+                            session.disconnect("Failed to authenticate", e);
                         }
                     }
                 }
@@ -65,17 +59,18 @@ public final class GameListener extends SessionAdapter {
             case IN_GAME_AFAIK:
                 if (p instanceof ClientboundChatPacket) {
                     ClientboundChatPacket packet = (ClientboundChatPacket)p;
-                    System.out.println(MessageFormatter.formatMessage(packet.getMessage()));
+                    logger.println(MessageFormatter.formatMessage(packet.getMessage()));
                 }
         }
         if (state != oldState) {
-            System.out.println("Switched to the " + state + " state");
+            logger.println("Switched to the " + state + " state");
         }
     }
 
     @Override
     public void disconnected(DisconnectedEvent event) {
-        System.out.println("Disconnected for: " + event.getReason());
+        LogToMultiplePlaces logger = event.getSession().getFlag(ChatMonitor.CHAT_LOGGER_KEY);
+        logger.println("Disconnected for: " + event.getReason());
         if (event.getCause() != null) {
             event.getCause().printStackTrace();
         }

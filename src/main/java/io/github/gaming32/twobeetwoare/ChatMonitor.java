@@ -1,6 +1,7 @@
 package io.github.gaming32.twobeetwoare;
 
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.Reader;
 import java.net.Proxy;
 import java.nio.file.Path;
@@ -22,7 +23,9 @@ import org.json.JSONTokener;
 import io.github.gaming32.twobeetwoare.betacraft.BC;
 
 public class ChatMonitor {
-    public static void main(String[] args) {
+    public static final String CHAT_LOGGER_KEY = "chat-logger";
+
+    public static void main(String[] args) throws IOException {
         Pair<GameProfile, String> profileData = getMsaAccessTokenFromBetacraft();
         if (profileData == null) {
             System.exit(1);
@@ -35,12 +38,16 @@ public class ChatMonitor {
         sessionService.setProxy(Proxy.NO_PROXY);
 
         Session client = new TcpClientSession("viaproxy.lenni0451.net", 25565, protocol, null);
+        client.setFlag(MinecraftConstants.AUTOMATIC_KEEP_ALIVE_MANAGEMENT, Boolean.FALSE);
         client.setFlag(MinecraftConstants.SESSION_SERVICE_KEY, sessionService);
         client.setFlag(MinecraftConstants.PROFILE_KEY, profileData.getLeft());
         client.setFlag(MinecraftConstants.ACCESS_TOKEN_KEY, profileData.getRight());
+        client.setFlag(CHAT_LOGGER_KEY, new LogToMultiplePlaces());
 
         client.addListener(new GameListener());
-        client.connect();
+        client.connect(true);
+
+        new KeepAliveTask(client).start();
     }
 
     private static Pair<GameProfile, String> getMsaAccessTokenFromBetacraft() {

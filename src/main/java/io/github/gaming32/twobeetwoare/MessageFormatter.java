@@ -37,10 +37,10 @@ public final class MessageFormatter {
     public static String formatMessage(Component root) {
         String[] result = new String[1];
         ComponentFlattener.basic().flatten(root, text -> result[0] = text);
-        return convertToAnsi(result[0]);
+        return result[0];
     }
 
-    private static final String convertToAnsi(String text) {
+    public static final String convertToAnsi(String text) {
         int next = text.indexOf(COLOR_CHAR);
         int last = text.length() - 1;
         if (next == -1 || next == last) {
@@ -68,6 +68,35 @@ public final class MessageFormatter {
 
         result.append(text, pos, text.length());
         result.append(ANSI_RESET);
+        return result.toString();
+    }
+
+    public static final String stripFormatting(String text) {
+        int next = text.indexOf(COLOR_CHAR);
+        int last = text.length() - 1;
+        if (next == -1 || next == last) {
+            return text;
+        }
+
+        StringBuilder result = new StringBuilder(text);
+        result.setLength(next);
+
+        int pos = next;
+        do {
+            int format = LOOKUP.indexOf(Character.toLowerCase(text.charAt(next + 1)));
+            if (format != -1) {
+                if (pos != next) {
+                    result.append(text, pos, next);
+                }
+                pos = next += 2;
+            } else {
+                next++;
+            }
+
+            next = text.indexOf(COLOR_CHAR, next);
+        } while (next != -1 && next < last);
+
+        result.append(text, pos, text.length());
         return result.toString();
     }
 }
