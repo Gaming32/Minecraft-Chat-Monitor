@@ -16,12 +16,12 @@ import javax.swing.SwingUtilities;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatPacket;
 import com.github.steveice10.packetlib.Session;
 
-import io.github.gaming32.twobeetwoare.ChatMonitor;
+import io.github.gaming32.twobeetwoare.ChatMonitorConstants;
 import io.github.gaming32.twobeetwoare.LogToMultiplePlaces;
 
 public final class ChatGui extends JFrame {
     public static final String GUI_CLOSED_REASON = "GUI closed";
-    public static final String TITLE = "2b2r Chat Viewer";
+    public static final String TITLE = "Minecraft Chat Viewer";
 
     private final Session session;
     private final Font minecraftiaFont;
@@ -78,7 +78,7 @@ public final class ChatGui extends JFrame {
                 return;
             }
             if (message.charAt(0) == '/') {
-                LogToMultiplePlaces logger = session.getFlag(ChatMonitor.CHAT_LOGGER_KEY);
+                LogToMultiplePlaces logger = session.getFlag(ChatMonitorConstants.CHAT_LOGGER_KEY);
                 logger.println(message);
             }
 

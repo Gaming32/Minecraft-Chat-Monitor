@@ -1,4 +1,3 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive",
-    "discord.removeDetails": true
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

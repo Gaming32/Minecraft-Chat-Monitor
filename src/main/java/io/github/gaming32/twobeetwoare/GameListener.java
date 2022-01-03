@@ -6,6 +6,7 @@ import com.github.steveice10.mc.auth.service.SessionService;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundCustomPayloadPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundDisconnectPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundKeepAlivePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCustomPayloadPacket;
@@ -18,6 +19,7 @@ import io.github.gaming32.twobeetwoare.gui.ChatGui;
 
 public final class GameListener extends SessionAdapter {
     private static String OAM_CHANNEL = "openauthmod:join";
+    private String ignoreDisconnectMessage;
 
     private static enum ClientState {
         AWAITING_CONNECT,
@@ -29,12 +31,16 @@ public final class GameListener extends SessionAdapter {
 
     @Override
     public void packetReceived(Session session, Packet p) {
-        LogToMultiplePlaces logger = session.getFlag(ChatMonitor.CHAT_LOGGER_KEY);
+        LogToMultiplePlaces logger = session.getFlag(ChatMonitorConstants.CHAT_LOGGER_KEY);
         ClientState oldState = state;
         switch (state) {
             case AWAITING_CONNECT:
                 if (p instanceof ClientboundKeepAlivePacket) {
-                    final String COMMAND = "/viaproxy 2b2r.org b1.7-b1.7.3";
+                    final String COMMAND = new StringBuilder("/viaproxy ")
+                        .append(session.<String>getFlag(ChatMonitorConstants.CHAT_SERVER_ADDRESS_KEY))
+                        .append(' ')
+                        .append(session.<String>getFlag(ChatMonitorConstants.CHAT_SERVER_VERSION_KEY))
+                        .toString();
                     session.send(new ServerboundChatPacket(COMMAND));
                     logger.println(COMMAND);
                     state = ClientState.AWAITING_AUTH_REQUEST;
@@ -69,12 +75,27 @@ public final class GameListener extends SessionAdapter {
         if (state != oldState) {
             logger.println("!Switched to the " + state + " state");
         }
+        if (p instanceof ClientboundDisconnectPacket) {
+            ClientboundDisconnectPacket packet = (ClientboundDisconnectPacket)p;
+            ignoreDisconnectMessage = packet.getReason().toString();
+            String formattedMessage = MessageFormatter.formatMessage(packet.getReason());
+            logger.println("!Disconnected! Following is the reason why:\n" + formattedMessage);
+            if (formattedMessage.startsWith("\u00a7b\u00a7l\u00a7oMiningFast")) {
+                logger.println(
+                    "This seems to have been caused by MiningFast.\n" +
+                    "To workaround this, please connect to viaproxy.raphimc.net with a normal Minecraft client.\n" +
+                    "You should then be able to use this client for 24 hours."
+                );
+            }
+        }
     }
 
     @Override
     public void disconnected(DisconnectedEvent event) {
-        LogToMultiplePlaces logger = event.getSession().getFlag(ChatMonitor.CHAT_LOGGER_KEY);
-        logger.println("!Disconnected for: " + event.getReason());
+        if (!event.getReason().equals(ignoreDisconnectMessage) || event.getCause() != null) {
+            LogToMultiplePlaces logger = event.getSession().getFlag(ChatMonitorConstants.CHAT_LOGGER_KEY);
+            logger.println("!Disconnected for: " + event.getReason());
+        }
         if (event.getCause() != null) {
             event.getCause().printStackTrace();
             if (ChatMonitor.hasGui()) {
@@ -89,7 +110,7 @@ public final class GameListener extends SessionAdapter {
             if (ChatMonitor.hasGui() && !event.getReason().equals(ChatGui.GUI_CLOSED_REASON)) {
                 JOptionPane.showMessageDialog(
                     null,
-                    "You have been disconnected (see the main window for why)",
+                    "You have been disconnected (see the main window for details)",
                     ChatGui.TITLE,
                     JOptionPane.INFORMATION_MESSAGE
                 );

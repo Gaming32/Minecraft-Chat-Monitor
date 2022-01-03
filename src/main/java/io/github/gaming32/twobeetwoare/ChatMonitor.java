@@ -6,6 +6,10 @@ import java.io.Reader;
 import java.net.Proxy;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
 
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -25,13 +29,16 @@ import io.github.gaming32.twobeetwoare.betacraft.BC;
 import io.github.gaming32.twobeetwoare.gui.ChatGui;
 
 public final class ChatMonitor {
-    public static final String CHAT_LOGGER_KEY = "chat-logger";
-    public static final String CHAT_GUI_KEY = "chat-gui";
+    public static final Scanner STDIN = new Scanner(System.in);
 
     private static boolean hasGui;
 
     public static void main(String[] args) throws IOException {
-        hasGui = args.length == 0 || !args[0].toLowerCase().endsWith("nogui");
+        List<String> argsL = new ArrayList<>(Arrays.asList(args));
+        hasGui = discoverHasGui(argsL);
+        String serverAddress = consumeArgument(argsL);
+        String serverVersion = consumeArgument(argsL);
+
         if (hasGui) {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -39,6 +46,36 @@ public final class ChatMonitor {
                 e.printStackTrace();
             }
             UIManager.getLookAndFeelDefaults().put("Slider.paintValue", Boolean.FALSE); // GTK PLAF fix
+        }
+
+        if (serverAddress == null) {
+            if (hasGui) {
+                serverAddress = JOptionPane.showInputDialog("Enter server address");
+            } else {
+                System.out.println("Enter server address: ");
+                serverAddress = STDIN.nextLine();
+            }
+        }
+        if (serverVersion == null) {
+            if (hasGui) {
+                serverVersion = JOptionPane.showInputDialog("Enter server version (ViaProxy form)");
+            } else {
+                System.out.println("Enter server version (ViaProxy form): ");
+                serverVersion = STDIN.nextLine();
+            }
+        }
+        if (!ChatMonitorConstants.VERSION_NUMBERS.contains(serverVersion)) {
+            StringBuilder messageBuilder = new StringBuilder("Invalid version: ")
+                .append(serverVersion)
+                .append("\nPlease select from the following versions:");
+            ChatMonitorConstants.VERSION_NUMBERS.forEach((ver) -> messageBuilder.append("\n  + ").append(ver));
+            final String message = messageBuilder.toString();
+            System.err.println(message);
+            if (hasGui) {
+                JOptionPane.showMessageDialog(null, message, ChatGui.TITLE, JOptionPane.ERROR_MESSAGE);
+            }
+            System.exit(1);
+            return;
         }
 
         Pair<GameProfile, String> profileData = getMsaAccessTokenFromBetacraft();
@@ -57,16 +94,32 @@ public final class ChatMonitor {
         client.setFlag(MinecraftConstants.SESSION_SERVICE_KEY, sessionService);
         client.setFlag(MinecraftConstants.PROFILE_KEY, profileData.getLeft());
         client.setFlag(MinecraftConstants.ACCESS_TOKEN_KEY, profileData.getRight());
-        client.setFlag(CHAT_LOGGER_KEY, new LogToMultiplePlaces(client));
-        client.setFlag(CHAT_GUI_KEY, null);
+        client.setFlag(ChatMonitorConstants.CHAT_SERVER_ADDRESS_KEY, serverAddress);
+        client.setFlag(ChatMonitorConstants.CHAT_SERVER_VERSION_KEY, serverVersion);
+        client.setFlag(ChatMonitorConstants.CHAT_LOGGER_KEY, new LogToMultiplePlaces(client));
+        client.setFlag(ChatMonitorConstants.CHAT_GUI_KEY, null);
 
         client.addListener(new GameListener());
         client.connect(true);
 
         new KeepAliveTask(client).start();
         if (hasGui) {
-            client.setFlag(CHAT_GUI_KEY, ChatGui.makeChatGui(client));
+            client.setFlag(ChatMonitorConstants.CHAT_GUI_KEY, ChatGui.makeChatGui(client));
         }
+    }
+
+    private static boolean discoverHasGui(List<String> args) {
+        for (int i = 0; i < args.size(); i++) {
+            if (args.get(i).endsWith("nogui")) {
+                args.remove(i);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static String consumeArgument(List<String> args) {
+        return args.size() > 0 ? args.remove(0) : null;
     }
 
     public static boolean hasGui() {
@@ -91,7 +144,8 @@ public final class ChatMonitor {
             if (account.getString("account_type").equals("MICROSOFT") && account.getString("local_uuid").equals(currentAccount)) {
                 return Pair.of(new GameProfile(
                     currentAccount.replaceFirst("(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)", "$1-$2-$3-$4-$5"),
-                    account.getString("username")
+                    // account.getString("username")
+                    "username"
                 ), account.getString("access_token"));
             }
         }

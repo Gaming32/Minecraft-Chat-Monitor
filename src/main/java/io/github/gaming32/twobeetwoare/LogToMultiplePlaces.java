@@ -20,7 +20,8 @@ public final class LogToMultiplePlaces implements AutoCloseable {
     public LogToMultiplePlaces(Session session) throws IOException {
         fileLogger = new PrintWriter(
             new FileOutputStream(
-                new StringBuilder("2b2r-chat-")
+                new StringBuilder(session.getFlag(ChatMonitorConstants.CHAT_SERVER_ADDRESS_KEY))
+                    .append("-chat-")
                     .append(LOG_FILE_DATE_FORMAT.format(new Date()))
                     .append(".log")
                     .toString()
@@ -40,7 +41,7 @@ public final class LogToMultiplePlaces implements AutoCloseable {
                 .append(strippedFormatting)
         );
         try {
-            ChatGui chatGui = session.getFlag(ChatMonitor.CHAT_GUI_KEY);
+            ChatGui chatGui = session.getFlag(ChatMonitorConstants.CHAT_GUI_KEY);
             if (chatGui != null) {
                 chatGui.println(strippedFormatting);
             }
