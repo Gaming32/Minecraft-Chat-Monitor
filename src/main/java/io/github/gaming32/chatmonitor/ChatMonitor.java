@@ -4,6 +4,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.Proxy;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import io.github.gaming32.chatmonitor.betacraft.BC;
+import io.github.gaming32.chatmonitor.betacraft.BetaCraftFolder;
 import io.github.gaming32.chatmonitor.gui.ChatGui;
 
 public final class ChatMonitor {
@@ -127,7 +128,25 @@ public final class ChatMonitor {
     }
 
     private static Pair<GameProfile, String> getMsaAccessTokenFromBetacraft() {
-        Path accountsJsonPath = Paths.get(BC.get(), "launcher", "accounts.json");
+        String bcFolder = BetaCraftFolder.get();
+        if (bcFolder == null) {
+            final String message = "Your OS is not supported";
+            System.err.println(message);
+            if (hasGui) {
+                JOptionPane.showMessageDialog(null, message, ChatGui.TITLE, JOptionPane.ERROR_MESSAGE);
+            }
+            return null;
+        }
+        Path accountsJsonPath = Paths.get(bcFolder, "launcher", "accounts.json");
+        if (!Files.isRegularFile(accountsJsonPath)) {
+            final String message = "BetaCraft does not appear to be installed. Please install it.";
+            System.err.println(message);
+            if (hasGui) {
+                JOptionPane.showMessageDialog(null, message, ChatGui.TITLE, JOptionPane.ERROR_MESSAGE);
+            }
+            return null;
+        }
+
         JSONObject jsonRoot;
         try (Reader reader = new FileReader(accountsJsonPath.toFile())) {
             jsonRoot = new JSONObject(new JSONTokener(reader));
@@ -138,19 +157,19 @@ public final class ChatMonitor {
             if (hasGui) JOptionPane.showMessageDialog(null, message + ": " + e, ChatGui.TITLE, JOptionPane.ERROR_MESSAGE);
             return null;
         }
+
         String currentAccount = jsonRoot.getString("current");
         for (Object accountObject : jsonRoot.getJSONArray("accounts")) {
             JSONObject account = (JSONObject)accountObject;
             if (account.getString("account_type").equals("MICROSOFT") && account.getString("local_uuid").equals(currentAccount)) {
                 return Pair.of(new GameProfile(
                     currentAccount.replaceFirst("(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)", "$1-$2-$3-$4-$5"),
-                    // account.getString("username")
-                    "username"
+                    account.getString("username")
                 ), account.getString("access_token"));
             }
         }
         {
-            final String message = "Unable to find valid Microsoft account in BetaCraft accounts.json";
+            final String message = "Unable to find valid Microsoft account in BetaCraft accounts.json.\nPlease sign into BetaCraft with a Microsoft account.";
             System.err.println(message);
             if (hasGui) JOptionPane.showMessageDialog(null, message, ChatGui.TITLE, JOptionPane.ERROR_MESSAGE);
         }
