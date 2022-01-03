@@ -25,5 +25,5 @@ jobs:
         uses: actions/upload-artifact@v2
         if: ${{ matrix.java == 8 && matrix.os == 'ubuntu-latest' }}
         with:
-          name: two-bee-two-are-chat-monitor-jar-artifact
-          path: target/two-bee-two-are-chat-monitor-*.jar
+          name: minecraft-chat-monitor-jar-artifact
+          path: target/minecraft-chat-monitor-*.jar
