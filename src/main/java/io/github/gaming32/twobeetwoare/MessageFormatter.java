@@ -1,7 +1,7 @@
 package io.github.gaming32.twobeetwoare;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.flattener.ComponentFlattener;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 // Thanks to https://github.com/Minecrell/TerminalConsoleAppender/blob/master/src/main/java/net/minecrell/terminalconsole/MinecraftFormattingConverter.java
 // for the converter code
@@ -35,9 +35,7 @@ public final class MessageFormatter {
     };
 
     public static String formatMessage(Component root) {
-        String[] result = new String[1];
-        ComponentFlattener.basic().flatten(root, text -> result[0] = text);
-        return result[0];
+        return PlainTextComponentSerializer.plainText().serialize(root);
     }
 
     public static final String convertToAnsi(String text) {

@@ -52,7 +52,7 @@ public final class ChatMonitor {
         SessionService sessionService = new SessionService();
         sessionService.setProxy(Proxy.NO_PROXY);
 
-        Session client = new TcpClientSession("viaproxy.lenni0451.net", 25565, protocol, null);
+        Session client = new TcpClientSession("viaproxy.raphimc.net", 25565, protocol, null);
         client.setFlag(MinecraftConstants.AUTOMATIC_KEEP_ALIVE_MANAGEMENT, Boolean.FALSE);
         client.setFlag(MinecraftConstants.SESSION_SERVICE_KEY, sessionService);
         client.setFlag(MinecraftConstants.PROFILE_KEY, profileData.getLeft());

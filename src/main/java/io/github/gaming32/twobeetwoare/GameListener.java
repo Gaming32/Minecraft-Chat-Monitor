@@ -80,16 +80,16 @@ public final class GameListener extends SessionAdapter {
             if (ChatMonitor.hasGui()) {
                 JOptionPane.showMessageDialog(
                     null,
-                    "Unexpectedly disconnected from server! " + event.getReason() + "\n" + event.getCause().getClass().getName() + ": " + event.getCause(),
+                    "Unexpectedly disconnected from server!\n" + event.getCause(),
                     ChatGui.TITLE,
                     JOptionPane.ERROR_MESSAGE
                 );
             }
         } else {
-            if (ChatMonitor.hasGui()) {
+            if (ChatMonitor.hasGui() && !event.getReason().equals(ChatGui.GUI_CLOSED_REASON)) {
                 JOptionPane.showMessageDialog(
                     null,
-                    "Disconnected: " + event.getReason(),
+                    "You have been disconnected (see the main window for why)",
                     ChatGui.TITLE,
                     JOptionPane.INFORMATION_MESSAGE
                 );
