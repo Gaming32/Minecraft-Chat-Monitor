@@ -2,6 +2,7 @@ package io.github.gaming32.twobeetwoare.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -23,6 +24,8 @@ public final class ChatGui extends JFrame {
     public static final String TITLE = "2b2r Chat Viewer";
 
     private final Session session;
+    private final Font minecraftiaFont;
+
     private JTextArea chatOutput;
     private JScrollPane chatOutputScrollPane;
 
@@ -34,6 +37,14 @@ public final class ChatGui extends JFrame {
 
     public ChatGui(Session session) {
         this.session = session;
+        // Font theFont;
+        // try {
+        //     theFont = Font.createFont(Font.TRUETYPE_FONT, getClass().getResourceAsStream("Minecraftia-Regular.ttf"));
+        // } catch (Exception e) {
+        //     theFont = null;
+        // }
+        // minecraftiaFont = theFont;
+        minecraftiaFont = null;
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         createComponents();
@@ -74,6 +85,19 @@ public final class ChatGui extends JFrame {
             ServerboundChatPacket packet = new ServerboundChatPacket(message);
             session.send(packet);
         });
+
+        if (minecraftiaFont != null) {
+            chatOutput.setFont(
+                minecraftiaFont
+                    .deriveFont(chatOutput.getFont().getStyle())
+                    .deriveFont(chatOutput.getFont().getSize())
+            );
+            chatInput.setFont(
+                minecraftiaFont
+                    .deriveFont(chatInput.getFont().getStyle())
+                    .deriveFont(chatInput.getFont().getSize())
+            );
+        }
 
         BorderLayout borderLayout = new BorderLayout();
         setLayout(borderLayout);
