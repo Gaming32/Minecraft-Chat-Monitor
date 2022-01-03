@@ -85,7 +85,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>io.github.gaming32.twobeetwoare.ChatMonitor</mainClass>
+              <mainClass>io.github.gaming32.chatmonitor.ChatMonitor</mainClass>
             </manifest>
           </archive>
         </configuration>
