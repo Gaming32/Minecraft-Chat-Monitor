@@ -70,11 +70,7 @@ public final class ChatMonitor {
                 .append(serverVersion)
                 .append("\nPlease choose from the following versions: ");
             ChatMonitorConstants.VERSION_NUMBERS.forEach((ver) -> messageBuilder.append(ver).append(", "));
-            final String message = Utils.lineBreaks(messageBuilder.substring(0, messageBuilder.length() - 2), 100);
-            System.err.println(message);
-            if (hasGui) {
-                JOptionPane.showMessageDialog(null, message, ChatGui.TITLE, JOptionPane.ERROR_MESSAGE);
-            }
+            showErrorMessage(messageBuilder.substring(0, messageBuilder.length() - 2));
             System.exit(1);
             return;
         }
@@ -130,20 +126,12 @@ public final class ChatMonitor {
     private static Pair<GameProfile, String> getMsaAccessTokenFromBetacraft() {
         String bcFolder = BetaCraftFolder.get();
         if (bcFolder == null) {
-            final String message = "Your OS is not supported";
-            System.err.println(message);
-            if (hasGui) {
-                JOptionPane.showMessageDialog(null, message, ChatGui.TITLE, JOptionPane.ERROR_MESSAGE);
-            }
+            showErrorMessage("Your OS is not supported");
             return null;
         }
         Path accountsJsonPath = Paths.get(bcFolder, "launcher", "accounts.json");
         if (!Files.isRegularFile(accountsJsonPath)) {
-            final String message = "BetaCraft does not appear to be installed. Please install it.";
-            System.err.println(message);
-            if (hasGui) {
-                JOptionPane.showMessageDialog(null, message, ChatGui.TITLE, JOptionPane.ERROR_MESSAGE);
-            }
+            showErrorMessage("BetaCraft does not appear to be installed. Please install it.");
             return null;
         }
 
@@ -154,7 +142,9 @@ public final class ChatMonitor {
             final String message = "Can't read BetaCraft accounts.json";
             System.err.println(message);
             e.printStackTrace();
-            if (hasGui) JOptionPane.showMessageDialog(null, message + ": " + e, ChatGui.TITLE, JOptionPane.ERROR_MESSAGE);
+            if (hasGui) {
+                JOptionPane.showMessageDialog(null, message + ": " + e, ChatGui.TITLE, JOptionPane.ERROR_MESSAGE);
+            }
             return null;
         }
 
@@ -169,10 +159,19 @@ public final class ChatMonitor {
             }
         }
         {
-            final String message = "Unable to find valid Microsoft account in BetaCraft accounts.json.\nPlease sign into BetaCraft with a Microsoft account.";
-            System.err.println(message);
-            if (hasGui) JOptionPane.showMessageDialog(null, message, ChatGui.TITLE, JOptionPane.ERROR_MESSAGE);
+            showErrorMessage("Unable to find valid Microsoft account in BetaCraft accounts.json. Please sign into BetaCraft with a Microsoft account.");
         }
         return null;
+    }
+
+    public static void showErrorMessage(String message) {
+        showMessage(message, JOptionPane.ERROR_MESSAGE);
+    }
+
+    public static void showMessage(String message, int guiType) {
+        System.err.println(message);
+        if (hasGui) {
+            JOptionPane.showMessageDialog(null, Utils.lineBreaks(message, 100), ChatGui.TITLE, JOptionPane.ERROR_MESSAGE);
+        }
     }
 }
