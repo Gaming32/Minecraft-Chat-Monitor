@@ -66,12 +66,6 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <artifactSet>
-                <includes>
-                </includes>
-              </artifactSet>
-              <relocations>
-              </relocations>
               <minimizeJar>true</minimizeJar>
             </configuration>
           </execution>

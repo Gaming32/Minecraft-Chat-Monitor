@@ -68,9 +68,9 @@ public final class ChatMonitor {
         if (!ChatMonitorConstants.VERSION_NUMBERS.contains(serverVersion)) {
             StringBuilder messageBuilder = new StringBuilder("Invalid version: ")
                 .append(serverVersion)
-                .append("\nPlease select from the following versions:");
-            ChatMonitorConstants.VERSION_NUMBERS.forEach((ver) -> messageBuilder.append("\n  + ").append(ver));
-            final String message = messageBuilder.toString();
+                .append("\nPlease choose from the following versions: ");
+            ChatMonitorConstants.VERSION_NUMBERS.forEach((ver) -> messageBuilder.append(ver).append(", "));
+            final String message = Utils.lineBreaks(messageBuilder.substring(0, messageBuilder.length() - 2), 100);
             System.err.println(message);
             if (hasGui) {
                 JOptionPane.showMessageDialog(null, message, ChatGui.TITLE, JOptionPane.ERROR_MESSAGE);
