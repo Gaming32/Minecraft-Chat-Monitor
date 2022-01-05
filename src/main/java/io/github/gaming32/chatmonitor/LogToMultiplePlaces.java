@@ -43,7 +43,7 @@ public final class LogToMultiplePlaces implements AutoCloseable {
         try {
             ChatGui chatGui = session.getFlag(ChatMonitorConstants.CHAT_GUI_KEY);
             if (chatGui != null) {
-                chatGui.println(strippedFormatting);
+                chatGui.println(text);
             }
         } catch (Exception e) {
             // Maybe the GUI was closed

@@ -10,28 +10,28 @@ public final class MessageFormatter {
     private static final char COLOR_CHAR = '§';
     private static final String LOOKUP = "0123456789abcdefklmnor";
     private static final String[] ANSI_CODES = new String[] {
-            "\u001B[0;30m", // Black §0
-            "\u001B[0;34m", // Dark Blue §1
-            "\u001B[0;32m", // Dark Green §2
-            "\u001B[0;36m", // Dark Aqua §3
-            "\u001B[0;31m", // Dark Red §4
-            "\u001B[0;35m", // Dark Purple §5
-            "\u001B[0;33m", // Gold §6
-            "\u001B[0;37m", // Gray §7
-            "\u001B[0;30;1m",  // Dark Gray §8
-            "\u001B[0;34;1m",  // Blue §9
-            "\u001B[0;32;1m",  // Green §a
-            "\u001B[0;36;1m",  // Aqua §b
-            "\u001B[0;31;1m",  // Red §c
-            "\u001B[0;35;1m",  // Light Purple §d
-            "\u001B[0;33;1m",  // Yellow §e
-            "\u001B[0;37;1m",  // White §f
-            "\u001B[5m",       // Obfuscated §k
-            "\u001B[21m",      // Bold §l
-            "\u001B[9m",       // Strikethrough §m
-            "\u001B[4m",       // Underline §n
-            "\u001B[3m",       // Italic §o
-            ANSI_RESET,        // Reset §r
+            "\u001B[0;30m",   // Black §0
+            "\u001B[0;34m",   // Dark Blue §1
+            "\u001B[0;32m",   // Dark Green §2
+            "\u001B[0;36m",   // Dark Aqua §3
+            "\u001B[0;31m",   // Dark Red §4
+            "\u001B[0;35m",   // Dark Purple §5
+            "\u001B[0;33m",   // Gold §6
+            "\u001B[0;37m",   // Gray §7
+            "\u001B[0;30;1m", // Dark Gray §8
+            "\u001B[0;34;1m", // Blue §9
+            "\u001B[0;32;1m", // Green §a
+            "\u001B[0;36;1m", // Aqua §b
+            "\u001B[0;31;1m", // Red §c
+            "\u001B[0;35;1m", // Light Purple §d
+            "\u001B[0;33;1m", // Yellow §e
+            "\u001B[0;37;1m", // White §f
+            "\u001B[5m",      // Obfuscated §k
+            "\u001B[21m",     // Bold §l
+            "\u001B[9m",      // Strikethrough §m
+            "\u001B[4m",      // Underline §n
+            "\u001B[3m",      // Italic §o
+            ANSI_RESET,       // Reset §r
     };
 
     public static String formatMessage(Component root) {

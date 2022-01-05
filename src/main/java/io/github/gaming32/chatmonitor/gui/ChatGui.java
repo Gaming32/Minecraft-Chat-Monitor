@@ -3,12 +3,13 @@ package io.github.gaming32.chatmonitor.gui;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.InputStream;
 
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
@@ -24,9 +25,9 @@ public final class ChatGui extends JFrame {
     public static final String TITLE = "Minecraft Chat Viewer";
 
     private final Session session;
-    private final Font minecraftiaFont;
+    private Font useFont;
 
-    private JTextArea chatOutput;
+    private MinecraftColorableTextPane chatOutput;
     private JScrollPane chatOutputScrollPane;
 
     public static ChatGui makeChatGui(Session session) {
@@ -37,14 +38,13 @@ public final class ChatGui extends JFrame {
 
     public ChatGui(Session session) {
         this.session = session;
-        // Font theFont;
-        // try {
-        //     theFont = Font.createFont(Font.TRUETYPE_FONT, getClass().getResourceAsStream("Minecraftia-Regular.ttf"));
-        // } catch (Exception e) {
-        //     theFont = null;
-        // }
-        // minecraftiaFont = theFont;
-        minecraftiaFont = null;
+        try (InputStream is = getClass().getResourceAsStream("Minecraftia-Regular.ttf")) {
+            Font minecraftia = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(16f);
+            GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(minecraftia);
+            useFont = minecraftia;
+        } catch (Exception e) {
+            useFont = null;
+        }
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         createComponents();
@@ -60,8 +60,7 @@ public final class ChatGui extends JFrame {
     }
 
     private void createComponents() {
-        chatOutput = new JTextArea();
-        chatOutput.setLineWrap(true);
+        chatOutput = new MinecraftColorableTextPane();
         chatOutput.setEditable(false);
         chatOutput.setAutoscrolls(true);
         chatOutputScrollPane = new JScrollPane(chatOutput);
@@ -86,17 +85,11 @@ public final class ChatGui extends JFrame {
             session.send(packet);
         });
 
-        if (minecraftiaFont != null) {
-            chatOutput.setFont(
-                minecraftiaFont
-                    .deriveFont(chatOutput.getFont().getStyle())
-                    .deriveFont(chatOutput.getFont().getSize())
-            );
-            chatInput.setFont(
-                minecraftiaFont
-                    .deriveFont(chatInput.getFont().getStyle())
-                    .deriveFont(chatInput.getFont().getSize())
-            );
+        if (useFont != null) {
+            chatOutput.setFont(useFont);
+            chatInput.setFont(useFont);
+        } else {
+            chatOutput.setFont(chatOutput.getFont().deriveFont(13f));
         }
 
         BorderLayout borderLayout = new BorderLayout();
@@ -107,11 +100,12 @@ public final class ChatGui extends JFrame {
     }
 
     public void println(String s) {
-        chatOutput.append(s + "\n");
-        chatOutput.setCaretPosition(chatOutput.getDocument().getLength());
+        chatOutput.setEditable(true);
+        chatOutput.println(s);
+        chatOutput.setEditable(false);
     }
 
-    public JTextArea getChatOutput() {
+    public MinecraftColorableTextPane getChatOutput() {
         return chatOutput;
     }
 

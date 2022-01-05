@@ -14,7 +14,7 @@
             "type": "java",
             "name": "Launch ChatMonitor",
             "request": "launch",
-            "mainClass": "io.github.gaming32.twobeetwoare.ChatMonitor",
+            "mainClass": "io.github.gaming32.chatmonitor.ChatMonitor",
             "projectName": "two-bee-two-are-chat-monitor",
             "args": ["2b2r.org", "b1.7-b1.7.3"]
         }
